@@ -1,0 +1,13 @@
+<ivy-module version="2.0">
+
+	<info organisation="uk.ac.gla.socs" module="joose2.coursework.jagora-lab4"/>
+
+	<dependencies>
+
+		<dependency org="junit" name="junit"  rev="4.11" conf="default"/>
+
+		<dependency org="org.hamcrest" name="hamcrest-all" rev="1.3" conf="default"/>
+				
+    </dependencies>
+
+</ivy-module>
