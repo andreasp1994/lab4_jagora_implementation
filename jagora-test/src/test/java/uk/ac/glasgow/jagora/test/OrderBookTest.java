@@ -39,8 +39,12 @@ public abstract class OrderBookTest {
 				orderBook.getOrdersAsList();
 					
 		for (Integer i = 0; i < stubBuyOrders.size(); i ++){
+			
 			BuyOrder actual = tickEvents.get(i).getEvent();
 			BuyOrder expected = stubBuyOrders.get(i);
+			
+			System.out.println("Actual:" + actual.getPrice() + " Expected:" + expected.getPrice());
+			
 			assertEquals(expected.getPrice(), actual.getPrice(), 0.0);
 			assertEquals(expected.getRemainingQuantity(), actual.getRemainingQuantity());
 		}
@@ -70,6 +74,7 @@ public abstract class OrderBookTest {
 		recordOrders(shuffled);
 		
 		for (BuyOrder buyOrder : stubBuyOrders){
+			System.out.println("BuyOrder:" + buyOrder.getPrice() + " bestActual:" + orderBook.getBestOrder().getPrice());
 			assertEquals("", buyOrder, orderBook.getBestOrder());	
 			orderBook.cancelOrder(buyOrder);
 		}

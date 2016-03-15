@@ -48,18 +48,22 @@ public class LimitBuyOrder implements BuyOrder {
 
 	@Override
 	public void satisfyTrade(TickEvent<Trade> tradeEvent) throws TradeException {
-		this.trader.buyStock(stock, quantity, price);
+		Trade trade = tradeEvent.getEvent();
+		this.trader.buyStock(trade.getStock(), trade.getQuantity(), trade.getPrice());
+		this.quantity -= trade.getQuantity();
 	}
 
 	@Override
 	public void rollBackTrade(TickEvent<Trade> tradeEvent)
 			throws TradeException {
-		this.trader.sellStock(stock, quantity, price);
-
+		Trade trade = tradeEvent.getEvent();
+		this.trader.sellStock(trade.getStock(), trade.getQuantity(), trade.getPrice());
+		this.quantity += trade.getQuantity();
 	}
 
 	@Override
 	public int compareTo(BuyOrder order) {
+		
 		if (this.price < order.getPrice())
 			return 1;
 		else if (this.price == order.getPrice())
@@ -70,6 +74,11 @@ public class LimitBuyOrder implements BuyOrder {
 	
 	@Override
 	public boolean equals(Object order){
-		return this.price.equals(((Order) order).getPrice());
+		if (order instanceof LimitBuyOrder){
+			if ((((Order) order).getPrice() == null) && (this.price == null)) return true;
+			return this.price.equals(((Order) order).getPrice());
+		}	
+		return false;
+		
 	}
 }

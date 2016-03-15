@@ -51,13 +51,9 @@ public class DefaultTrader implements Trader {
 	public void sellStock(Stock stock, Integer quantity, Double price)
 			throws TradeException {
 		if (stock != this.stock ) throw new TradeException("Stocks do not match");
-		System.out.println("To remove:" + quantity);
-		System.out.println("Current:" + this.quantity);
+		
 		this.quantity -= quantity;
-		System.out.println("Current:" + this.quantity);
 		this.cash += price*quantity;
-		System.out.println("End of method");
-
 	}
 
 	@Override

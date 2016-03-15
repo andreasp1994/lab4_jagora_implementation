@@ -1,5 +1,6 @@
 package uk.ac.glasgow.jagora.impl;
 
+import uk.ac.glasgow.jagora.Order;
 import uk.ac.glasgow.jagora.SellOrder;
 import uk.ac.glasgow.jagora.Stock;
 import uk.ac.glasgow.jagora.TickEvent;
@@ -47,29 +48,37 @@ public class LimitSellOrder implements SellOrder {
 
 	@Override
 	public void satisfyTrade(TickEvent<Trade> tradeEvent) throws TradeException {
-		int tradeQuantity = tradeEvent.getEvent().getQuantity();
-		this.quantity -= tradeQuantity;
-		
+		Trade trade = tradeEvent.getEvent();
+		this.trader.sellStock(trade.getStock(), trade.getQuantity(), trade.getPrice());
+		this.quantity -= trade.getQuantity();
 	}
 
 	@Override
 	public void rollBackTrade(TickEvent<Trade> tradeEvent)
 			throws TradeException {
-		
-		int tradeQuantity = tradeEvent.getEvent().getQuantity();
-		this.quantity += tradeQuantity;
-		
-		
+		Trade trade = tradeEvent.getEvent();
+		this.trader.buyStock(trade.getStock(), trade.getQuantity(), trade.getPrice());
+		this.quantity +=trade.getQuantity();
 	}
 
 	@Override
 	public int compareTo(SellOrder order) {
 		if (this.price < order.getPrice())
-			return 1;
+			return -1;
 		else if (this.price == order.getPrice())
 			return 0;
 		else
-			return -1;
+			return 1;
+	}
+	
+	@Override
+	public boolean equals(Object order){
+		if (order instanceof LimitSellOrder){
+			if ((((Order) order).getPrice() == null) && (this.price == null)) return true;
+			return this.price.equals(((Order) order).getPrice());
+		}	
+		return false;
+		
 	}
 
 }
