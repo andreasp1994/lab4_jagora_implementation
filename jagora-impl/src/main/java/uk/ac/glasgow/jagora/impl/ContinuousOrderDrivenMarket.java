@@ -49,42 +49,51 @@ public class ContinuousOrderDrivenMarket implements Market {
 
 	@Override
 	public List<TickEvent<Trade>> doClearing() {
-		List<TickEvent<Trade>> trades = new ArrayList<TickEvent<Trade>>();
-		while (buyBook.getBestOrder().getPrice() >= sellBook.getBestOrder().getPrice()){
-			
-			
-			
-			Trade trade = new DefaultTrade(world, buyBook.getBestOrder(), sellBook.getBestOrder(),
-							this.stock, Math.min(sellBook.getBestOrder().getRemainingQuantity(),buyBook.getBestOrder().getRemainingQuantity() ),
-							Math.min(sellBook.getBestOrder().getPrice(), buyBook.getBestOrder().getPrice()));
-			TickEvent<Trade> tickEvent = null;
+		List<TickEvent<Trade>> executedTrades = new ArrayList<>();
+
+		BuyOrder buyOrder;
+		SellOrder sellOrder;
+
+		while (true) {
+			buyOrder = buyBook.getBestOrder();
+			sellOrder = sellBook.getBestOrder();
+
+			if (buyOrder == null) break;
+			if (sellOrder == null) break;
+			if (getBestBid() < getBestOffer()) break;
+
+			double price = sellOrder.getPrice();
+			int quantity = Math.min(buyOrder.getRemainingQuantity(), sellOrder.getRemainingQuantity());
+
+			if (sellOrder.getRemainingQuantity() >
+                    sellOrder.getTrader().getInventoryHolding(sellOrder.getStock())) {
+                cancelSellOrder(sellOrder);
+                continue;
+            }
+
+            if (buyOrder.getPrice() >
+                    buyOrder.getTrader().getCash()) {
+                cancelBuyOrder(buyOrder);
+                continue;
+            }
+
+			Trade trade = new DefaultTrade(world, buyOrder, sellOrder, stock, quantity, price);
 			try {
-				tickEvent = trade.execute();
-			} catch (TradeException e2) {
-				System.out.println("Exception..");
+				executedTrades.add(trade.execute());
 			}
-			trades.add(tickEvent);
-			try {
-				
-				buyBook.getBestOrder().satisfyTrade(tickEvent);
-				sellBook.getBestOrder().satisfyTrade(tickEvent);
-				
-			} catch (TradeException e){
-				
-				try {
-					buyBook.getBestOrder().rollBackTrade(tickEvent);
-					sellBook.getBestOrder().rollBackTrade(tickEvent);
-				} catch (TradeException e1) {
-					System.out.println("Error applying trades... terminating..");
-				}
+			catch (TradeException e) {
+				e.printStackTrace();
 			}
-			
-			if (buyBook.getBestOrder().getRemainingQuantity() == 0){
-				buyBook.cancelOrder(buyBook.getBestOrder());
-				sellBook.cancelOrder(sellBook.getBestOrder());
+
+			if (buyOrder.getRemainingQuantity() == 0) {
+				cancelBuyOrder(buyOrder);
+			}
+			if (sellOrder.getRemainingQuantity() == 0) {
+				cancelSellOrder(sellOrder);
 			}
 		}
-		return trades;		
+
+		return executedTrades;
 	}
 
 	@Override

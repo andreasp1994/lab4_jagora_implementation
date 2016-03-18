@@ -49,7 +49,10 @@ public class DefaultOrderBook<O extends Order & Comparable<O>> implements OrderB
 
 	@Override
 	public O getBestOrder() {
-		return backing.peek().getEvent();
+		TickEvent<O> order = backing.peek();
+		if (order != null)
+			return order.getEvent();
+		return null;
 	}
 
 	@Override
